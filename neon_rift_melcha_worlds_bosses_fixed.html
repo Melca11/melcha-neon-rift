@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="bs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07091b">
+<title>NEON RIFT — MELCHA EDITION</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07091b;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+canvas{display:block;width:100vw;height:100dvh}
+#hud{position:fixed;top:env(safe-area-inset-top,8px);left:0;right:0;padding:12px 12px;display:flex;gap:7px;align-items:center;justify-content:space-between;pointer-events:none}
+.pill{min-width:0;flex:1;text-align:center;padding:8px 5px;border:1px solid #39f6ff66;background:#071329dc;border-radius:13px;box-shadow:0 0 16px #00d9ff25}
+.pill small{display:block;font-size:9px;letter-spacing:1.2px;color:#9cefff;font-weight:900}.pill b{font-size:18px;text-shadow:0 0 10px #00eaff}
+#pause{pointer-events:auto;flex:0 0 43px;height:43px;border:1px solid #ff4be288;border-radius:13px;background:#210d31;color:#fff;font-size:18px}
+#bottom{position:fixed;bottom:calc(env(safe-area-inset-bottom,8px) + 10px);left:0;right:0;text-align:center;pointer-events:none}
+#levelBanner{position:fixed;top:31%;left:50%;transform:translate(-50%,-50%) scale(.8);padding:13px 24px;border:1px solid #ff55e9;border-radius:16px;background:#160d31ee;color:#fff;font-weight:1000;letter-spacing:2px;font-size:22px;text-align:center;text-shadow:0 0 12px #ff3be0;box-shadow:0 0 30px #ff35dc66;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}#levelBanner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#tip{display:inline-block;background:#08152be8;border:1px solid #45eaff88;border-radius:30px;padding:10px 17px;font-size:12px;font-weight:900;letter-spacing:.6px;color:#c5faff}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 35%,#14245bd9,#050713f2)}
+.panel{width:min(430px,100%);padding:25px 21px;text-align:center;border:1px solid #4ef5ff;border-radius:25px;background:linear-gradient(145deg,#101b3bf5,#170c2bf5);box-shadow:0 0 35px #00d9ff35,inset 0 0 25px #ff2de51c}
+.kicker{font-size:11px;letter-spacing:4px;color:#ff55e9;font-weight:1000}h1{font-size:clamp(38px,11vw,58px);line-height:.9;margin:12px 0 16px;letter-spacing:-2px;color:#fff;text-shadow:0 0 8px #00eaff,0 0 25px #00aaff}h1 span{color:#ff52e8;text-shadow:0 0 12px #ff20d4}
+p{line-height:1.5;color:#c8d8f6}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:18px 0}.tile{border:1px solid #ffffff22;background:#ffffff0b;border-radius:13px;padding:10px 3px;font-size:10px;color:#bdeeff;font-weight:800}.tile strong{display:block;font-size:22px;margin-bottom:3px}
+button{font:inherit}.primary{border:0;border-radius:14px;padding:15px 28px;min-width:205px;font-weight:1000;font-size:17px;color:#080b22;background:linear-gradient(100deg,#35f4ff,#e94bff);box-shadow:0 0 22px #36eaff70}
+.note{font-size:10px;color:#8497ba}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+ <div class="pill"><small>SCORE</small><b id="score">0</b></div>
+ <div class="pill"><small>ENERGY</small><b id="energy">0</b></div>
+ <div class="pill"><small>LEVEL</small><b id="level">1</b></div><div class="pill"><small>WORLD</small><b id="worldName">NEON</b></div><div class="pill"><small>BEST</small><b id="best">0</b></div>
+ <button id="pause">Ⅱ</button>
+</div>
+<div id="bossBar" style="display:none;position:fixed;top:82px;left:18%;width:64%;height:10px;border:1px solid #ff5be9;border-radius:20px;background:#160d31;overflow:hidden"><div id="bossFill" style="height:100%;width:100%;background:linear-gradient(90deg,#ff35dc,#ffe45b)"></div></div><div id="levelBanner">LEVEL 2<br><small style="font-size:11px;letter-spacing:1px">BRŽE • TEŽE • JAČE</small></div><div id="bottom"><span id="tip">TAP ZA SKOK • DVOSTRUKI TAP ZA DASH</span></div>
+<div id="overlay"><div class="panel" id="panel">
+ <div class="kicker">MELCHA PRESENTS</div><h1>NEON<br><span>RIFT</span></h1><div style="font-weight:1000;letter-spacing:5px;color:#4cf3ff;text-shadow:0 0 12px #00dfff;margin-top:-5px">MELCHA</div>
+ <p>Melcha, futuristički grad je tvoj! Probij energetske barijere, skupljaj kristale i osvajaj sve teže levele.</p>
+ <div class="grid"><div class="tile"><strong>⚡</strong>ENERGY DASH</div><div class="tile"><strong>◆</strong>NEON SHARDS</div><div class="tile"><strong>∞</strong>ENDLESS RUN</div></div>
+ <button class="primary" id="start">START RUN</button>
+ <p class="note">Besplatna arkadna igra • bez kupovine • bez novčanika</p>
+</div></div>
+<script>
+(()=>{
+const c=document.getElementById('c'),x=c.getContext('2d');
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(a,b,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(a+r,b);this.arcTo(a+w,b,a+w,b+h,r);this.arcTo(a+w,b+h,a,b+h,r);this.arcTo(a,b+h,a,b,r);this.arcTo(a,b,a+w,b,r);this.closePath();return this;}}
+const $=id=>document.getElementById(id);let W,H,D,ground,mode='menu',t=0,last=0,raf=0,score=0,energy=0,level=1,best=+(localStorage.getItem('neonRiftBest')||0),speed=6,spawn=0,player,blocks,shards,particles,enemies,boss,dash=0,inv=0,levelBannerTimer=0,lastTap=0;
+const worlds=[{name:'NEON',top:'#080c25',mid:'#11133a',low:'#210d37',sun:'#ff54dc',edge:'#35efff'},{name:'CYBER',top:'#041b22',mid:'#073b43',low:'#0b253e',sun:'#37ffd0',edge:'#6bffce'},{name:'LAVA',top:'#210b19',mid:'#53132b',low:'#250d29',sun:'#ff6b35',edge:'#ffb13b'},{name:'VOID',top:'#09051e',mid:'#24104b',low:'#100b2d',sun:'#a66bff',edge:'#c5a0ff'}];
+function worldStyle(){return worlds[Math.floor((level-1)/3)%worlds.length]}
+$('best').textContent=best;$('level').textContent=level;
+function size(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0);ground=H*.79;if(player&&player.grounded)player.y=ground-player.h;draw()}
+addEventListener('resize',size);
+function reset(){player={x:W*.2,y:ground-54,w:34,h:54,vy:0,grounded:true,jumps:0};blocks=[];shards=[];particles=[];enemies=[];boss=null;score=0;energy=0;level=1;speed=6;spawn=30;dash=0;inv=0;levelBannerTimer=0;$('levelBanner').classList.remove('show');$('bossBar').style.display='none';hud()}
+function hud(){$('score').textContent=Math.floor(score);$('energy').textContent=energy;$('best').textContent=best;$('level').textContent=level;$('worldName').textContent=worldStyle().name}
+function glow(color,blur){x.shadowColor=color;x.shadowBlur=blur}
+function line(x1,y1,x2,y2,color,w=1){x.strokeStyle=color;x.lineWidth=w;x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke()}
+function bg(){let ws=worldStyle();let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,ws.top);g.addColorStop(.65,ws.mid);g.addColorStop(1,ws.low);x.fillStyle=g;x.fillRect(0,0,W,H);
+ // moon / neon sun
+ glow(ws.sun,24);x.fillStyle=ws.sun;x.beginPath();x.arc(W*.75,H*.2,Math.min(W*.13,54),0,Math.PI*2);x.fill();x.shadowBlur=0;
+ // distant skyline
+ for(let i=0;i<13;i++){let bw=34+(i*17%35),bh=H*(.15+(i*37%28)/100),xx=((i*83-t*.24)%(W+100)+W+100)%(W+100)-50,yy=ground-bh;x.fillStyle=i%2?'#111c43':'#17153e';x.fillRect(xx,yy,bw,bh);x.strokeStyle='#264a78';x.strokeRect(xx,yy,bw,bh);for(let wy=yy+12;wy<ground-8;wy+=18)for(let wx=xx+8;wx<xx+bw-5;wx+=13){x.fillStyle=(Math.floor(wx+wy+t/15)%3===0)?'#ff4be5':'#35eaff';x.globalAlpha=.6;x.fillRect(wx,wy,4,6);x.globalAlpha=1}}
+ // road
+ x.fillStyle='#080b20';x.fillRect(0,ground,W,H-ground);glow(ws.edge,13);line(0,ground,W,ground,ws.edge,3);x.shadowBlur=0;
+ for(let i=0;i<12;i++){let xx=((i*100-t*1.7)%(W+100)+W+100)%(W+100);line(xx,ground+10,xx-30, H,'#243c72',1)}
+ for(let i=0;i<8;i++){let xx=((i*130-t*speed*.8)%(W+130)+W+130)%(W+130);x.fillStyle='#ff39dc';x.fillRect(xx,ground+23,34,3)}
+}
+function drawHero(){let px=player.x,py=player.y;x.save();x.translate(px+17,py+26);if(dash>0)x.globalAlpha=.65;
+ // energy trail
+ if(dash>0){glow('#32edff',22);line(-18,0,-65,0,'#34f4ff',7);x.shadowBlur=0}
+ // legs
+ glow('#00eaff',10);line(-5,12,-12,25,'#42eaff',6);line(5,12,13,24,'#42eaff',6);
+ // torso
+ x.fillStyle='#172a52';x.strokeStyle='#39f5ff';x.lineWidth=2;x.beginPath();x.roundRect(-11,-9,22,25,6);x.fill();x.stroke();
+ // chest core
+ glow('#ff39dd',13);x.fillStyle='#ff54e8';x.fillRect(-4,-3,8,9);x.shadowBlur=0;
+ // arms
+ line(-9,-4,-17,5,'#9afaff',5);line(9,-4,17,4,'#9afaff',5);
+ // head
+ x.fillStyle='#f0c8ba';x.beginPath();x.arc(0,-19,10,0,7);x.fill();
+ x.fillStyle='#111b3b';x.beginPath();x.arc(0,-22,11,Math.PI,Math.PI*2);x.fill();x.fillRect(-11,-22,22,4);
+ glow('#ff39dd',9);x.fillStyle='#ff45d9';x.fillRect(2,-20,5,2);x.shadowBlur=0;x.restore()}
+function burst(px,py,col,n){for(let i=0;i<n;i++)particles.push({x:px,y:py,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:25,col})}
+function jump(){if(mode!=='play')return;if(player.jumps<2){player.vy=player.jumps===0?-14:-11;player.jumps++;player.grounded=false;burst(player.x+15,player.y+45,'#3af5ff',6)}}
+function dashMove(){if(mode==='play'&&energy>=3&&dash<=0){energy-=3;dash=18;inv=18;burst(player.x,player.y+25,'#ff4be5',18);hud()}}
+function add(){if(Math.random()<.58){blocks.push({x:W+30,y:ground-35,w:rand(25,42),h:35})}else{blocks.push({x:W+30,y:ground-65,w:25,h:65})}if(level>=2&&Math.random()<.38)enemies.push({x:W+125,y:ground-rand(105,165),w:34,h:24,phase:rand(0,6)});for(let i=0;i<3;i++)shards.push({x:W+100+i*30,y:ground-95-Math.sin(i/2)*12,r:9,got:false})}
+function startBoss(){boss={x:W+20,y:ground-150,w:76,h:90,hp:3,max:3,phase:0};$('bossBar').style.display='block';$('bossFill').style.width='100%';$('levelBanner').innerHTML=`BOSS LEVEL ${level}<br><small style="font-size:11px;letter-spacing:1px">MELCHA • PORAZI ČUVARA</small>`;$('levelBanner').classList.add('show');levelBannerTimer=120}
+function bossHit(){if(!boss)return;boss.hp--;burst(boss.x+boss.w/2,boss.y+boss.h/2,'#ffe45b',24);$('bossFill').style.width=(boss.hp/boss.max*100)+'%';if(boss.hp<=0){burst(boss.x+boss.w/2,boss.y+boss.h/2,'#ff4be5',55);boss=null;$('bossBar').style.display='none';energy+=5;score+=50;hud();$('levelBanner').innerHTML='BOSS DEFEATED!<br><small style="font-size:11px;letter-spacing:1px">+5 KRISTALA • +50 BODOVA</small>';$('levelBanner').classList.add('show');levelBannerTimer=150}}
+function rand(a,b){return a+Math.random()*(b-a)}
+function collide(a,b){return a.x+7<b.x+b.w&&a.x+a.w-7>b.x&&a.y+6<b.y+b.h&&a.y+a.h-4>b.y}
+function update(dt){let f=Math.min(dt/16.67,2);t+=f;score+=.16*f;let nextLevel=1+Math.floor(score/100);if(nextLevel>level){level=nextLevel;energy+=1;levelBannerTimer=95;$('levelBanner').innerHTML=`LEVEL ${level}<br><small style="font-size:11px;letter-spacing:1px">NOVI SVIJET • +1 KRISTAL</small>`;$('levelBanner').classList.add('show');if(level%5===0)startBoss();hud()}if(levelBannerTimer>0){levelBannerTimer-=f;if(levelBannerTimer<=0)$('levelBanner').classList.remove('show')}speed=Math.min(15,6+(level-1)*.65+score/260);spawn-=f;if(spawn<=0){add();spawn=Math.max(30,rand(58,82)-speed-(level-1)*2)}
+player.vy+=.72*f;player.y+=player.vy*f;if(player.y>=ground-player.h){player.y=ground-player.h;player.vy=0;player.grounded=true;player.jumps=0}
+if(dash>0)dash-=f;if(inv>0)inv-=f;
+for(let b of blocks){b.x-=speed*f;if(collide(player,b)){if(dash>0){b.dead=true;burst(b.x,b.y,'#ff4be5',15)}else if(inv<=0){finish();return}}}
+for(let s of shards){s.x-=speed*f;if(!s.got&&Math.abs(player.x+17-s.x)<25&&Math.abs(player.y+25-s.y)<32){s.got=true;energy++;score+=4;burst(s.x,s.y,'#ffe45b',8)}}
+blocks=blocks.filter(b=>b.x>-60&&!b.dead);shards=shards.filter(s=>s.x>-30&&!s.got);
+for(let p of particles){p.x+=p.vx*f;p.y+=p.vy*f;p.life-=f}particles=particles.filter(p=>p.life>0);hud()}
+function draw(){bg();for(let e of enemies){glow('#55ffd0',16);x.fillStyle='#123e49';x.strokeStyle='#55ffd0';x.lineWidth=2;x.beginPath();x.roundRect(e.x,e.y,e.w,e.h,8);x.fill();x.stroke();x.fillStyle='#ff4be5';x.fillRect(e.x+8,e.y+8,6,5);x.fillRect(e.x+21,e.y+8,6,5);x.shadowBlur=0}if(boss){glow('#ff3bdf',22);x.fillStyle='#351044';x.strokeStyle='#ff4be5';x.lineWidth=3;x.beginPath();x.roundRect(boss.x,boss.y,boss.w,boss.h,18);x.fill();x.stroke();x.fillStyle='#ff4be5';x.fillRect(boss.x+13,boss.y+24,15,9);x.fillRect(boss.x+48,boss.y+24,15,9);x.fillStyle='#ffe45b';x.fillRect(boss.x+25,boss.y+55,27,8);x.shadowBlur=0}for(let b of blocks){glow('#ff3bdf',14);x.fillStyle='#31134c';x.strokeStyle='#ff4be5';x.lineWidth=2;x.beginPath();x.roundRect(b.x,b.y,b.w,b.h,5);x.fill();x.stroke();x.shadowBlur=0;x.fillStyle='#ffb6f5';x.fillRect(b.x+6,b.y+7,4,5)}
+for(let s of shards){glow('#ffe45b',18);x.fillStyle='#ffe45b';x.beginPath();x.moveTo(s.x,s.y-s.r);x.lineTo(s.x+s.r,s.y);x.lineTo(s.x,s.y+s.r);x.lineTo(s.x-s.r,s.y);x.closePath();x.fill();x.shadowBlur=0}
+drawHero();for(let p of particles){x.globalAlpha=p.life/25;glow(p.col,8);x.fillStyle=p.col;x.fillRect(p.x,p.y,4,4);x.globalAlpha=1;x.shadowBlur=0}}
+function start(){cancelAnimationFrame(raf);reset();mode='play';$('overlay').style.display='none';last=performance.now();raf=requestAnimationFrame(loop)}
+function finish(){mode='over';best=Math.max(best,Math.floor(score));localStorage.setItem('neonRiftBest',best);hud();$('panel').innerHTML=`<div class="kicker">MELCHA • RUN COMPLETE</div><h1>RIFT<br><span>ENDED</span></h1><p>Igrač: <b>Melcha</b><br>Level: <b>${level}</b><br>Svijet: <b>${worldStyle().name}</b><br>Rezultat: <b>${Math.floor(score)}</b><br>Prikupljeni kristali: <b>${energy}</b><br>Najbolji rezultat: <b>${best}</b></p><button class="primary" id="again">TRY AGAIN</button><p class="note">Svaki pokušaj te vodi dalje.</p>`;$('again').onclick=start;$('overlay').style.display='flex'}
+function loop(now){if(mode!=='play')return;let dt=now-last;last=now;update(dt);if(mode!=='play')return;draw();raf=requestAnimationFrame(loop)}
+function pause(){if(mode==='play'){mode='pause';$('panel').innerHTML=`<div class="kicker">SYSTEM PAUSED</div><h1>PAUSE</h1><p>Spremna za nastavak?</p><button class="primary" id="resume">NASTAVI</button>`;$('resume').onclick=()=>{mode='play';last=performance.now();$('overlay').style.display='none';raf=requestAnimationFrame(loop)};$('overlay').style.display='flex'}}
+c.addEventListener('pointerdown',e=>{e.preventDefault();let now=performance.now();if(now-lastTap<320){dashMove();lastTap=0}else{jump();lastTap=now}});let tapTimer=0;addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}if(e.code==='Shift'||e.code==='ArrowRight')dashMove()});c.addEventListener('dblclick',dashMove);$('pause').onclick=pause;$('start').onclick=start;size();draw();
+})();
+</script>
+</body></html>
