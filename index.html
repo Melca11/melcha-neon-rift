@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="bs">
 <head>
+<meta name="x-ogp-key" content="bc54c536-fcd2-4e30-9d83-5c9c7de686e8" id="ogp-key-meta">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#07091b">
@@ -31,7 +32,9 @@ button{font:inherit}.primary{border:0;border-radius:14px;padding:15px 28px;min-w
  <div class="pill"><small>LEVEL</small><b id="level">1</b></div><div class="pill"><small>WORLD</small><b id="worldName">NEON</b></div><div class="pill"><small>BEST</small><b id="best">0</b></div>
  <button id="pause">Ⅱ</button>
 </div>
-<div id="bossBar" style="display:none;position:fixed;top:82px;left:18%;width:64%;height:10px;border:1px solid #ff5be9;border-radius:20px;background:#160d31;overflow:hidden"><div id="bossFill" style="height:100%;width:100%;background:linear-gradient(90deg,#ff35dc,#ffe45b)"></div></div><div id="levelBanner">LEVEL 2<br><small style="font-size:11px;letter-spacing:1px">BRŽE • TEŽE • JAČE</small></div><div id="bottom"><span id="tip">TAP ZA SKOK • DVOSTRUKI TAP ZA DASH</span></div>
+<div id="bossBar" style="display:none;position:fixed;top:82px;left:18%;width:64%;height:10px;border:1px solid #ff5be9;border-radius:20px;background:#160d31;overflow:hidden"><div id="bossFill" style="height:100%;width:100%;background:linear-gradient(90deg,#ff35dc,#ffe45b)"></div></div>
+<div id="levelBanner">LEVEL 2<br><small style="font-size:11px;letter-spacing:1px">BRŽE • TEŽE • JAČE</small></div>
+<div id="bottom"><span id="tip">TAP ZA SKOK • DVOSTRUKI TAP ZA DASH</span></div>
 <div id="overlay"><div class="panel" id="panel">
  <div class="kicker">MELCHA PRESENTS</div><h1>NEON<br><span>RIFT</span></h1><div style="font-weight:1000;letter-spacing:5px;color:#4cf3ff;text-shadow:0 0 12px #00dfff;margin-top:-5px">MELCHA</div>
  <p>Melcha, futuristički grad je tvoj! Probij energetske barijere, skupljaj kristale i osvajaj sve teže levele.</p>
@@ -54,30 +57,21 @@ function hud(){$('score').textContent=Math.floor(score);$('energy').textContent=
 function glow(color,blur){x.shadowColor=color;x.shadowBlur=blur}
 function line(x1,y1,x2,y2,color,w=1){x.strokeStyle=color;x.lineWidth=w;x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke()}
 function bg(){let ws=worldStyle();let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,ws.top);g.addColorStop(.65,ws.mid);g.addColorStop(1,ws.low);x.fillStyle=g;x.fillRect(0,0,W,H);
- // moon / neon sun
- glow(ws.sun,24);x.fillStyle=ws.sun;x.beginPath();x.arc(W*.75,H*.2,Math.min(W*.13,54),0,Math.PI*2);x.fill();x.shadowBlur=0;
- // distant skyline
- for(let i=0;i<13;i++){let bw=34+(i*17%35),bh=H*(.15+(i*37%28)/100),xx=((i*83-t*.24)%(W+100)+W+100)%(W+100)-50,yy=ground-bh;x.fillStyle=i%2?'#111c43':'#17153e';x.fillRect(xx,yy,bw,bh);x.strokeStyle='#264a78';x.strokeRect(xx,yy,bw,bh);for(let wy=yy+12;wy<ground-8;wy+=18)for(let wx=xx+8;wx<xx+bw-5;wx+=13){x.fillStyle=(Math.floor(wx+wy+t/15)%3===0)?'#ff4be5':'#35eaff';x.globalAlpha=.6;x.fillRect(wx,wy,4,6);x.globalAlpha=1}}
- // road
- x.fillStyle='#080b20';x.fillRect(0,ground,W,H-ground);glow(ws.edge,13);line(0,ground,W,ground,ws.edge,3);x.shadowBlur=0;
- for(let i=0;i<12;i++){let xx=((i*100-t*1.7)%(W+100)+W+100)%(W+100);line(xx,ground+10,xx-30, H,'#243c72',1)}
- for(let i=0;i<8;i++){let xx=((i*130-t*speed*.8)%(W+130)+W+130)%(W+130);x.fillStyle='#ff39dc';x.fillRect(xx,ground+23,34,3)}
+glow(ws.sun,24);x.fillStyle=ws.sun;x.beginPath();x.arc(W*.75,H*.2,Math.min(W*.13,54),0,Math.PI*2);x.fill();x.shadowBlur=0;
+for(let i=0;i<13;i++){let bw=34+(i*17%35),bh=H*(.15+(i*37%28)/100),xx=((i*83-t*.24)%(W+100)+W+100)%(W+100)-50,yy=ground-bh;x.fillStyle=i%2?'#111c43':'#17153e';x.fillRect(xx,yy,bw,bh);x.strokeStyle='#264a78';x.strokeRect(xx,yy,bw,bh);for(let wy=yy+12;wy<ground-8;wy+=18)for(let wx=xx+8;wx<xx+bw-5;wx+=13){x.fillStyle=(Math.floor(wx+wy+t/15)%3===0)?'#ff4be5':'#35eaff';x.globalAlpha=.6;x.fillRect(wx,wy,4,6);x.globalAlpha=1}}
+x.fillStyle='#080b20';x.fillRect(0,ground,W,H-ground);glow(ws.edge,13);line(0,ground,W,ground,ws.edge,3);x.shadowBlur=0;
+for(let i=0;i<12;i++){let xx=((i*100-t*1.7)%(W+100)+W+100)%(W+100);line(xx,ground+10,xx-30,H,'#243c72',1)}
+for(let i=0;i<8;i++){let xx=((i*130-t*speed*.8)%(W+130)+W+130)%(W+130);x.fillStyle='#ff39dc';x.fillRect(xx,ground+23,34,3)}
 }
 function drawHero(){let px=player.x,py=player.y;x.save();x.translate(px+17,py+26);if(dash>0)x.globalAlpha=.65;
- // energy trail
- if(dash>0){glow('#32edff',22);line(-18,0,-65,0,'#34f4ff',7);x.shadowBlur=0}
- // legs
- glow('#00eaff',10);line(-5,12,-12,25,'#42eaff',6);line(5,12,13,24,'#42eaff',6);
- // torso
- x.fillStyle='#172a52';x.strokeStyle='#39f5ff';x.lineWidth=2;x.beginPath();x.roundRect(-11,-9,22,25,6);x.fill();x.stroke();
- // chest core
- glow('#ff39dd',13);x.fillStyle='#ff54e8';x.fillRect(-4,-3,8,9);x.shadowBlur=0;
- // arms
- line(-9,-4,-17,5,'#9afaff',5);line(9,-4,17,4,'#9afaff',5);
- // head
- x.fillStyle='#f0c8ba';x.beginPath();x.arc(0,-19,10,0,7);x.fill();
- x.fillStyle='#111b3b';x.beginPath();x.arc(0,-22,11,Math.PI,Math.PI*2);x.fill();x.fillRect(-11,-22,22,4);
- glow('#ff39dd',9);x.fillStyle='#ff45d9';x.fillRect(2,-20,5,2);x.shadowBlur=0;x.restore()}
+if(dash>0){glow('#32edff',22);line(-18,0,-65,0,'#34f4ff',7);x.shadowBlur=0}
+glow('#00eaff',10);line(-5,12,-12,25,'#42eaff',6);line(5,12,13,24,'#42eaff',6);
+x.fillStyle='#172a52';x.strokeStyle='#39f5ff';x.lineWidth=2;x.beginPath();x.roundRect(-11,-9,22,25,6);x.fill();x.stroke();
+glow('#ff39dd',13);x.fillStyle='#ff54e8';x.fillRect(-4,-3,8,9);x.shadowBlur=0;
+line(-9,-4,-17,5,'#9afaff',5);line(9,-4,17,4,'#9afaff',5);
+x.fillStyle='#f0c8ba';x.beginPath();x.arc(0,-19,10,0,7);x.fill();
+x.fillStyle='#111b3b';x.beginPath();x.arc(0,-22,11,Math.PI,Math.PI*2);x.fill();x.fillRect(-11,-22,22,4);
+glow('#ff39dd',9);x.fillStyle='#ff45d9';x.fillRect(2,-20,5,2);x.shadowBlur=0;x.restore()}
 function burst(px,py,col,n){for(let i=0;i<n;i++)particles.push({x:px,y:py,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:25,col})}
 function jump(){if(mode!=='play')return;if(player.jumps<2){player.vy=player.jumps===0?-14:-11;player.jumps++;player.grounded=false;burst(player.x+15,player.y+45,'#3af5ff',6)}}
 function dashMove(){if(mode==='play'&&energy>=3&&dash<=0){energy-=3;dash=18;inv=18;burst(player.x,player.y+25,'#ff4be5',18);hud()}}
